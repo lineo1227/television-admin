@@ -1,0 +1,50 @@
+$color-gray-light: #ccc;
+$color-gray-dark: #999;
+$color-dark: #333;
+$color-light: #eee;
+@mixin flex($fd: row, $ai: auto, $jc: auto) {
+  display: flex;
+  flex-direction: $fd;
+  align-items: $ai;
+  justify-content: $jc;
+}
+@mixin absolutePOS($l: auto, $t: auto, $r: auto, $b: auto) {
+  position: absolute;
+  left: $l;
+  top: $t;
+  right: $r;
+  bottom: $b;
+}
+@mixin boxPadding($pd) {
+  padding: $pd;
+  box-sizing: border-box;
+}
+@mixin routerView() {
+  color: $color-dark;
+  height: 100%;
+  width: 100%;
+  @include boxPadding(16px);
+  @include flex(column);
+  background-color: #f5f5f580;
+  &__container {
+    margin-top: 16px;
+    height: 0;
+    flex: 1;
+    width: 100%;
+  }
+  &__title {
+    font-size: 20px;
+    color: $color-dark;
+    position: relative;
+    &::before {
+      content: '';
+      @include absolutePOS($l: 0, $b: -5px);
+      display: block;
+      width: 80px;
+      height: 8px;
+      background: linear-gradient(90deg, #03bf8a 0%, #03bf8a00 100%);
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+  }
+}
