@@ -4,3 +4,4 @@ declare module '*.vue' {
   export default componentOptions
 }
 declare module 'uuid'
+declare module 'ali-oss'

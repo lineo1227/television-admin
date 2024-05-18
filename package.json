@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "ali-oss": "^6.20.0",
     "animate.css": "^4.1.1",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
@@ -19,6 +20,7 @@
     "event-source-polyfill": "^1.0.31",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
+    "ts-brand-json": "^0.1.1",
     "uuid": "^9.0.1",
     "vue": "^3.4.21",
     "vue-request": "^2.0.4",
