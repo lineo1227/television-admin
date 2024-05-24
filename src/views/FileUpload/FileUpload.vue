@@ -4,12 +4,16 @@
     <div class="file__container">
       <div style="display: flex;">
         <MessageForm />
-        <div class="content" @drop="handleDrop" @click="handleClick" @dragover.prevent
-          @dragenter.prevent="isDragover = true" @dragleave.prevent="isDragover = false"
-          :class="{ 'is-dragover': isDragover }">
-          <el-icon :size="30">
-            <Files />
-          </el-icon>
+        <div style="display: flex;flex-direction: column;flex: 1;margin-right: 20px;">
+          <h4 style="color: #606266; margin-left: 20px;margin-bottom: 10px;">视频文件</h4>
+          <div class="content" @drop="handleDrop" @click="handleClick" @dragover.prevent
+            @dragenter.prevent="isDragover = true" @dragleave.prevent="isDragover = false"
+            :class="{ 'is-dragover': isDragover }">
+            <el-icon :size="30">
+              <Files />
+            </el-icon>
+          </div>
+          <ImgInput />
         </div>
       </div>
 
@@ -25,11 +29,14 @@
   </div>
 </template>
 <script setup lang="ts">
+import ImgInput from "./components/ImgInput.vue"
 import MessageForm from "./components/MessageForm.vue"
 import { Files } from "@element-plus/icons-vue";
 import { ref } from "vue";
 import { getOssToken } from "@/api"
 import OSS from "ali-oss"
+import log from '@/utils/log';
+import type { AxiosResponse } from "axios";
 interface OssSignType {
   host: string
   policy: string
@@ -42,6 +49,20 @@ const region = "oss-cn-beijing";
 const partSize = 1024 * 1024; // 每个分片大小(byte)
 const parallel = 3; // 同时上传的分片数
 const ossClient = ref()
+async function resetOssToken() {
+  const { data: { credentials: { AccessKeyId, AccessKeySecret, SecurityToken } } } = await getOssToken() as AxiosResponse<{
+    credentials: {
+      AccessKeyId: string
+      AccessKeySecret: string
+      SecurityToken: string
+    }
+  }>
+  return {
+    accessKeyId: AccessKeyId,
+    accessKeySecret: AccessKeySecret,
+    stsToken: SecurityToken,
+  }
+}
 
 getOssToken().then((res: any) => {
   const { AccessKeyId, AccessKeySecret, SecurityToken } = res.data.credentials
@@ -50,8 +71,13 @@ getOssToken().then((res: any) => {
     accessKeySecret: AccessKeySecret,
     stsToken: SecurityToken,
     bucket,
-    region
+    region,
+    refreshSTSToken: async () => await resetOssToken(),
+    secure: true,
   })
+  log.info('AccessKeyId', AccessKeyId)
+  log.info('SecurityToken', SecurityToken)
+  log.info('AccessKeySecret', AccessKeySecret)
 })
 const isDragover = ref(false);
 const selectedFile = ref<File | null>(null);
@@ -116,8 +142,7 @@ const handleClick = () => {
 
   &__container {
     .content {
-      flex: 1;
-
+      width: 100%;
       margin-left: 20px;
       height: 200px !important;
       line-height: 200px;
