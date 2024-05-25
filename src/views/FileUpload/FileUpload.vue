@@ -38,20 +38,20 @@ import { getOssToken } from "@/api"
 import OSS from "ali-oss"
 import log from '@/utils/log';
 import type { AxiosResponse } from "axios";
-import type { FormType } from "./components/MessageForm.vue"
+interface OssType {
+  credentials: {
+    AccessKeyId: string
+    AccessKeySecret: string
+    SecurityToken: string
+  }
+}
 const bucket = "lineo-pet-oss";// bucket名称
 const region = "oss-cn-beijing";
 const partSize = 1024 * 1024; // 每个分片大小(byte)
 const parallel = 3; // 同时上传的分片数
 const ossClient = ref()
 async function resetOssToken() {
-  const { data: { credentials: { AccessKeyId, AccessKeySecret, SecurityToken } } } = await getOssToken() as AxiosResponse<{
-    credentials: {
-      AccessKeyId: string
-      AccessKeySecret: string
-      SecurityToken: string
-    }
-  }>
+  const { data: { credentials: { AccessKeyId, AccessKeySecret, SecurityToken } } } = await getOssToken() as AxiosResponse<OssType>
   return {
     accessKeyId: AccessKeyId,
     accessKeySecret: AccessKeySecret,

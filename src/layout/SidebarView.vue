@@ -2,12 +2,8 @@
   <aside>
     <div class="logo">television-admin</div>
     <ul>
-      <li
-        @click="pathTo(index, item)"
-        v-for="(item, index) in menus.list"
-        :key="item.id"
-        :class="menus.active === index && 'active'"
-      >
+      <li @click="pathTo(index, item)" v-for="(item, index) in menus.list" :key="item.id"
+        :class="menus.active === index && 'active'">
         {{ item.name }}
       </li>
     </ul>
@@ -42,9 +38,11 @@ aside {
     text-align: center;
     line-height: 56px;
   }
+
   ul {
     margin-top: 23px;
     width: 100%;
+
     li {
       font-size: 16px;
       margin-top: 6px;
@@ -53,10 +51,16 @@ aside {
       @include boxPadding(10px 10px 10px 24px);
       transition: 0.3s;
       cursor: pointer;
+
+      &:hover {
+        background-color: #f6f9fa0a;
+      }
+
       &.active {
         border-left: #03bf8a 4px solid;
         background-color: #f6f9fa0a;
       }
+
       &:first-child {
         margin-top: 0;
       }

@@ -49,19 +49,7 @@
 
 <script lang="ts" setup>
 import { reactive } from 'vue'
-type VideoChooseType<T> = {
-    kind: T,
-    type: T | T[],
-    year: T,
-    language: T,
-    region: T,
-    tariff: T
-}
-export interface FormType extends VideoChooseType<string> {
-    name: string,
-    desc: string,
-    isHot: boolean,
-}
+import type { TelevisionFormType as FormType, TelevisionChooseType as VideoChooseType } from '@/types';
 const form = reactive<FormType>({
     name: '',
     region: '',
