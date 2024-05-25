@@ -1,45 +1,65 @@
 <template>
-  <h4 style="color: #606266; margin-left: 20px;margin-bottom: 10px;">视频封面</h4>
-  <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-    :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
-    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
-    <el-icon v-else class="avatar-uploader-icon">
+  <h4>视频封面</h4>
+  <el-upload v-model:file-list="imageUrl" class="avatar-uploader" list-type="picture-card" @change="onSubmit"
+    :on-preview="handlePictureCardPreview" :on-remove="handleRemove" :auto-upload="false">
+    <el-icon>
       <Plus />
     </el-icon>
   </el-upload>
+  <el-dialog width="400" v-model="dialogVisible">
+    <img :src="dialogImageUrl" style="height: 100%; width: 100%" lt="Preview Image" />
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, defineModel, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 
-import type { UploadProps } from 'element-plus'
-
-const imageUrl = ref('')
-
-const handleAvatarSuccess: UploadProps['onSuccess'] = (
-  response,
-  uploadFile
-) => {
-  imageUrl.value = URL.createObjectURL(uploadFile.raw!)
+import type { UploadFile, UploadProps, UploadUserFile } from 'element-plus'
+const dialogImageUrl = ref('')
+const dialogVisible = ref(false)
+const imgFile = defineModel()
+const imageUrl = ref<{ [key in string]: string }[]>([])
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
+  imgFile.value = null
+}
+watch(imgFile, (newValue) => {
+  if (newValue === null) {
+    imageUrl.value = []
+  }
+})
+const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
+  dialogImageUrl.value = uploadFile.url!
+  dialogVisible.value = true
 }
 
-const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
-  if (rawFile.type !== 'image/jpeg') {
-    ElMessage.error('Avatar picture must be JPG format!')
+const onSubmit = (e: UploadFile) => {
+  if (e.raw?.type !== 'image/jpeg') {
+    ElMessage.warning('只能上传图片')
     return false
-  } else if (rawFile.size / 1024 / 1024 > 2) {
-    ElMessage.error('Avatar picture size can not exceed 2MB!')
+  } else if (e.raw?.size / 1024 / 1024 > 20) {
+    ElMessage.warning('图片不能大于20MB')
     return false
   }
-  return true
+  imgFile.value = e.raw
+  imageUrl.value = [{
+    url:
+      URL.createObjectURL(e.raw)
+  }]
 }
 </script>
 
 <style scoped>
+h4 {
+  font-size: 16px;
+  color: #606266;
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
 .avatar-uploader {
-  margin-left: 20px
+  margin-left: 20px;
 }
 
 .avatar-uploader .avatar {

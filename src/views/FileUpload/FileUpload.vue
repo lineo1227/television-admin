@@ -3,17 +3,18 @@
     <h2 class="file__title">文件上传</h2>
     <div class="file__container">
       <div style="display: flex;">
-        <MessageForm />
-        <div style="display: flex;flex-direction: column;flex: 1;margin-right: 20px;">
-          <h4 style="color: #606266; margin-left: 20px;margin-bottom: 10px;">视频文件</h4>
+        <MessageForm ref="messageForm" />
+        <div class="video__box">
+          <h4>视频文件</h4>
           <div class="content" @drop="handleDrop" @click="handleClick" @dragover.prevent
             @dragenter.prevent="isDragover = true" @dragleave.prevent="isDragover = false"
             :class="{ 'is-dragover': isDragover }">
             <el-icon :size="30">
-              <Files />
+              <Files v-show="!videoFile" />
+              <FolderChecked v-show="videoFile" />
             </el-icon>
           </div>
-          <ImgInput />
+          <ImgInput v-model="imgFile" />
         </div>
       </div>
 
@@ -31,19 +32,13 @@
 <script setup lang="ts">
 import ImgInput from "./components/ImgInput.vue"
 import MessageForm from "./components/MessageForm.vue"
-import { Files } from "@element-plus/icons-vue";
+import { Files, FolderChecked } from "@element-plus/icons-vue";
 import { ref } from "vue";
 import { getOssToken } from "@/api"
 import OSS from "ali-oss"
 import log from '@/utils/log';
 import type { AxiosResponse } from "axios";
-interface OssSignType {
-  host: string
-  policy: string
-  OSSAccessKeyId: string
-  signature: string
-
-}
+import type { FormType } from "./components/MessageForm.vue"
 const bucket = "lineo-pet-oss";// bucket名称
 const region = "oss-cn-beijing";
 const partSize = 1024 * 1024; // 每个分片大小(byte)
@@ -63,7 +58,7 @@ async function resetOssToken() {
     stsToken: SecurityToken,
   }
 }
-
+const messageForm = ref()
 getOssToken().then((res: any) => {
   const { AccessKeyId, AccessKeySecret, SecurityToken } = res.data.credentials
   ossClient.value = new OSS({
@@ -80,15 +75,15 @@ getOssToken().then((res: any) => {
   log.info('AccessKeySecret', AccessKeySecret)
 })
 const isDragover = ref(false);
-const selectedFile = ref<File | null>(null);
+const videoFile = ref<File | null>(null);
+const imgFile = ref<File | null>(null);
 function rules(files: FileList) {
   const isMedia =
-    files![0].type.indexOf("image") > -1 ||
     files![0].type.indexOf("video") > -1;
   if (!isMedia) {
-    return ElMessage.warning("只能上传图片或视频");
+    return ElMessage.warning("只能上传视频");
   }
-  selectedFile.value = files[0];
+  videoFile.value = files[0];
 }
 const handleDrop = (e: DragEvent) => {
   e.preventDefault();
@@ -96,13 +91,33 @@ const handleDrop = (e: DragEvent) => {
   rules(files as FileList);
 };
 async function handleUpload() {
-  if (selectedFile.value === null) {
+  const form = messageForm.value.form
+  for (const key in form) {
+    if (form[key].length === 0) {
+      return ElMessage.warning("文件名信息未填写");
+    }
+  }
+  if (videoFile.value === null || imgFile.value === null) {
     return ElMessage.warning("请先选择文件");
   }
-  const file = selectedFile.value
-  await request(file)
-  ElMessage.success("上传成功");
-  selectedFile.value = null;
+  // 视频 v_
+  const vi = videoFile.value.name.lastIndexOf('.')
+  const vt = form.name + videoFile.value.name.slice(vi)
+  const vfi = new File([videoFile.value], vt, { type: videoFile.value.type })
+  // 图片 i_
+  const ii = imgFile.value.name.lastIndexOf('.')
+  const it = form.name + imgFile.value.name.slice(ii)
+  const ifi = new File([imgFile.value], it, { type: imgFile.value.type })
+  const ir = await request(ifi)
+  log.success('封面链接', `https://${ir.bucket}.oss-cn-beijing.aliyuncs.com/${ir.name}`)
+  ElMessage.success("封面上传成功");
+  const vr = await request(vfi)
+  log.success('视频链接', `https://${vr.bucket}.oss-cn-beijing.aliyuncs.com/${vr.name}`)
+  ElMessage.success("视频上传成功");
+  console.table(form)
+  videoFile.value = null;
+  imgFile.value = null;
+  messageForm.value.resetForm()
 }
 const uploadCount = ref<number>(0);
 async function request(file: File) {
@@ -114,7 +129,7 @@ async function request(file: File) {
   // });
   // 切片上传
   uploadCount.value = 1
-  await ossClient.value.multipartUpload(file.name, file, {
+  const res = await ossClient.value.multipartUpload(file.name, file, {
     parallel,
     partSize,
     progress(p: number) {
@@ -124,6 +139,7 @@ async function request(file: File) {
     }
   })
   uploadCount.value = 0
+  return res
 }
 const progressInfo = ref<{ [key in string]: number }>({});
 const handleClick = () => {
@@ -141,6 +157,21 @@ const handleClick = () => {
   @include routerView();
 
   &__container {
+
+
+    .video__box {
+      @include flex($fd: column);
+      flex: 1;
+      margin-right: 20px;
+
+      h4 {
+        font-size: 16px;
+        color: #606266;
+        margin-left: 20px;
+        margin-bottom: 10px;
+      }
+    }
+
     .content {
       width: 100%;
       margin-left: 20px;
@@ -152,6 +183,8 @@ const handleClick = () => {
       transition: 0.3s;
       cursor: pointer;
       border-radius: 4px;
+
+
 
       &:hover,
       .is-dragover {

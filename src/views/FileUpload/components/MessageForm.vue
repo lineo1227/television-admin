@@ -1,5 +1,5 @@
 <template>
-    <el-form :model="form" label-width="auto" style="max-width: 40%">
+    <el-form :model="form" label-width="auto" class="message__form">
         <el-form-item label="视频标题">
             <el-input placeholder="请输入..." v-model="form.name" />
         </el-form-item>
@@ -57,7 +57,7 @@ type VideoChooseType<T> = {
     region: T,
     tariff: T
 }
-interface FormType extends VideoChooseType<string> {
+export interface FormType extends VideoChooseType<string> {
     name: string,
     desc: string,
     isHot: boolean,
@@ -73,6 +73,22 @@ const form = reactive<FormType>({
     year: "",
     language: ""
 })
+function resetForm() {
+    form.name = ''
+    form.region = ''
+    form.isHot = false
+    form.type = []
+    form.desc = ''
+    form.kind = ""
+    form.tariff = ""
+    form.year = ""
+    form.language = ""
+}
+
+defineExpose({
+    form,
+    resetForm
+})
 const videoChoose = reactive<VideoChooseType<string[]>>({
     kind: ['电影', '动漫', '儿童'],
     type: ['动作', '戏剧', '爱情', '科幻'],
@@ -82,3 +98,14 @@ const videoChoose = reactive<VideoChooseType<string[]>>({
     tariff: ['全部', '免费', '会员'],
 })
 </script>
+<style lang="scss">
+.message__form {
+    max-width: 40%;
+    width: 600px;
+
+    .el-checkbox__inner {
+        width: 14px;
+        height: 14px;
+    }
+}
+</style>
